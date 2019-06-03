@@ -97,6 +97,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                         Bitmap bitmap = getBitmapFromByte(data, size.width, size.height);
                         //裁剪算法是，先将图片转换到屏幕大小(以预览界面宽或者高为准，图片按对应的高度比，裁剪掉多余的尺寸)
                         //再按屏幕尺寸和裁剪区域所占比例，等比例裁剪图片
+                        cropImage(bitmap);
                     }
                 });
                 break;
