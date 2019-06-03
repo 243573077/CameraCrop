@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.crop.camera.camera.CameraPreview
+        android:id="@+id/mCameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!-->可以自行在这里加自定义状态栏,不会遮挡预览view<-->
+
+
+        <!-- 裁剪预览布局-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!-- 证件取景框 /相机裁剪区域  -->
+            <ImageView
+                android:id="@+id/mIvScanRect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20"
+                android:src="@mipmap/iv_scan_card_rect" />
+
+            <TextView
+                android:id="@+id/mTvCropTip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="15dp"
+                android:text="@string/str_crop_tip_card"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!--拍照按钮   横屏下可拓展为多项操作的 布局-->
+        <ImageView
+            android:id="@+id/mIvTakePhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:padding="10dp"
+            android:scaleType="fitXY"
+            android:src="@mipmap/iv_take_photo" />
+    </RelativeLayout>
+</RelativeLayout>

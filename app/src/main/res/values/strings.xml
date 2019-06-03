@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CameraCrop</string>
+    <string name="str_take_camera_crop">拍照并裁剪</string>
+    <string name="str_crop_tip_card">请将证件放入框中</string>
+</resources>
