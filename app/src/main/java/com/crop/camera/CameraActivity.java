@@ -1,5 +1,6 @@
 package com.crop.camera;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -12,14 +13,17 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.crop.camera.camera.CameraPreview;
 import com.crop.camera.utils.CameraUtils;
 import com.crop.camera.utils.ImageUtils;
+import com.crop.camera.utils.PermissionUtil;
 import com.crop.camera.utils.ScreenUtils;
 
 import org.jetbrains.annotations.Nullable;
@@ -27,37 +31,46 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayOutputStream;
 
 
-public class CameraActivity extends Activity implements View.OnClickListener {
+public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
 
     private String tag = CameraActivity.class.getName();
     private CameraPreview mCameraPreview;
     private ImageView mIvScanRect, mIvTakePhoto;
     private TextView mTvCropTip;
+    private Thread cropThread;
 
     private String filePath;
     private Bitmap mCropBitmap;
+    private String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera);
-        //支持竖屏或者横屏，不支持页面内横竖屏切换，需要此功能的请自行修改源码
-        initView();
-        initListener();
-        initData();
+        if (PermissionUtil.hasPermissions(this, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)) {
+            setContentView(R.layout.activity_camera);
+            //支持竖屏或者横屏，不支持页面内横竖屏切换，需要此功能的请自行修改源码
+            initView();
+            initListener();
+            initData();
         /*增加0.5秒过渡界面，解决个别手机首次申请权限导致预览界面启动慢的问题*/
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCameraPreview.setVisibility(View.VISIBLE);
-                        mCameraPreview.focus();
-                    }
-                });
-            }
-        }, 500);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mCameraPreview.setVisibility(View.VISIBLE);
+                            mCameraPreview.focus();
+                        }
+                    });
+                }
+            }, 500);
+        } else {
+            //缺少相机，存储卡权限
+            Toast.makeText(this, getString(R.string.str_permission_need_tip), Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
     }
 
     private void initView() {
@@ -87,16 +100,27 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 mCameraPreview.focus();
                 break;
             case R.id.mIvTakePhoto:
+                mIvTakePhoto.setClickable(false);
                 mCameraPreview.setEnabled(false);
                 CameraUtils.getCamera().setOneShotPreviewCallback(new Camera.PreviewCallback() {
                     @Override
-                    public void onPreviewFrame(byte[] data, Camera camera) {
+                    public void onPreviewFrame(final byte[] data, Camera camera) {
                         final Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
                         camera.stopPreview();
-                        Bitmap bitmap = getBitmapFromByte(data, size.width, size.height);
-                        //裁剪算法是，先将图片转换到屏幕大小(以预览界面宽或者高为准，图片按对应的高度比，裁剪掉多余的尺寸)
-                        //再按屏幕尺寸和裁剪区域所占比例，等比例裁剪图片
-                        cropImage(bitmap);
+                        if (cropThread != null) {
+                            cropThread.interrupt();
+                        }
+                        cropThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Bitmap bitmap = getBitmapFromByte(data, size.width, size.height);
+                                //裁剪算法是，先将图片转换到屏幕大小(以预览界面宽或者高为准，图片按对应的高度比，裁剪掉多余的尺寸)
+                                //再按屏幕尺寸和裁剪区域所占比例，等比例裁剪图片
+                                cropImage(bitmap);
+                            }
+                        });
+                        cropThread.start();
+
                     }
                 });
                 break;
@@ -238,17 +262,25 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         //保存裁剪后的区域
         if (mCropBitmap != null) {
             filePath = "mnt/sdcard/temp.jpg";
-            boolean success = ImageUtils.save(mCropBitmap, filePath, Bitmap.CompressFormat.JPEG, true);
+            final boolean success = ImageUtils.save(mCropBitmap, filePath, Bitmap.CompressFormat.JPEG, true);
 
 //            Log.i(tag, "image file  rotation --" + GalleryUtil.getBitmapRotate(filePath));
-            if (success) {
-                Intent result = new Intent();
-                setResult(Activity.RESULT_OK, result);
-                //返回结果
-                finish();
-            } else {
-                // 保存图片失败 给出提示
-            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (success) {
+                        Intent result = new Intent();
+                        result.putExtra(CameraCropHelper.CROP_FILE_PATH, filePath);
+                        setResult(Activity.RESULT_OK, result);
+                        //返回结果
+                        finish();
+                    } else {
+                        // 保存图片失败 给出提示
+                        mIvTakePhoto.setClickable(true);
+                    }
+                }
+            });
+
         }
     }
 
@@ -267,6 +299,14 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         if (mCropBitmap != null && mCropBitmap.isRecycled()) {
             mCropBitmap.recycle();
             mCropBitmap = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (cropThread != null) {
+            cropThread.interrupt();
         }
     }
 }
