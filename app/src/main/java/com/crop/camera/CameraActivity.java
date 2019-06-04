@@ -114,6 +114,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                         camera.stopPreview();
                         if (cropThread != null) {
                             cropThread.interrupt();
+                            cropThread = null;
                         }
                         cropThread = new Thread(new Runnable() {
                             @Override
@@ -310,6 +311,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     protected void onDestroy() {
         if (cropThread != null) {
             cropThread.interrupt();
+            cropThread = null;
         }
         super.onDestroy();
     }
