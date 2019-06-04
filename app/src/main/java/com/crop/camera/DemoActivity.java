@@ -46,9 +46,10 @@ public class DemoActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.mTvOpenCamera:
-                Intent intent = new Intent();
-                intent.setClass(DemoActivity.this, CameraActivity.class);
-                startActivityForResult(intent, 1);
+                CameraCropHelper.openCameraCrop(DemoActivity.this);
+//                Intent intent = new Intent();
+//                intent.setClass(DemoActivity.this, CameraActivity.class);
+//                startActivityForResult(intent, 1);
                 break;
         }
     }
@@ -57,9 +58,13 @@ public class DemoActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            String path = "mnt/sdcard/temp.jpg";
-            mIvCropResult.setImageBitmap(BitmapFactory.decodeFile(path)); // 真实项目中需要将图片进行缩放压缩处理
+        switch (requestCode){
+            case CameraCropHelper.OPEN_CAMERA_CROP_CODE:
+                if (resultCode == Activity.RESULT_OK) {
+                    String path = data.getStringExtra(CameraCropHelper.CROP_FILE_PATH);
+                    mIvCropResult.setImageBitmap(BitmapFactory.decodeFile(path)); // 真实项目中需要将图片进行缩放压缩处理
+                }
+                break;
         }
     }
 }

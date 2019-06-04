@@ -10,7 +10,7 @@ public class CameraCropHelper {
     static final String CROP_FILE_PATH = "crop_file_path";
 
 
-    public void openCameraCrop(Activity activity) {
+    public static void openCameraCrop(Activity activity) {
         if (activity == null) {
             return;
         }
@@ -19,7 +19,7 @@ public class CameraCropHelper {
         activity.startActivityForResult(intent, OPEN_CAMERA_CROP_CODE);
     }
 
-    public void openCameraCrop(Fragment fragment) {
+    public static void openCameraCrop(Fragment fragment) {
         if (fragment == null || fragment.getContext() == null) {
             return;
         }
