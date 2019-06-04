@@ -14,6 +14,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -88,7 +89,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void initData() {
-
+        filePath = getIntent().getStringExtra(CameraCropHelper.CROP_FILE_PATH);
+        if (TextUtils.isEmpty(filePath)) {
+            filePath = CameraCropHelper.FILE_PATH_DEFAULT;
+        }
     }
 
     @Override
@@ -262,7 +266,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         }
         //保存裁剪后的区域
         if (mCropBitmap != null) {
-            filePath = "mnt/sdcard/temp.jpg";
             final boolean success = ImageUtils.save(mCropBitmap, filePath, Bitmap.CompressFormat.JPEG, true);
 
 //            Log.i(tag, "image file  rotation --" + GalleryUtil.getBitmapRotate(filePath));
