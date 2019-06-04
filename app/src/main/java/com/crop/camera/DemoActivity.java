@@ -47,9 +47,9 @@ public class DemoActivity extends Activity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.mTvOpenCamera:
                 CameraCropHelper.openCameraCrop(DemoActivity.this);
-//                Intent intent = new Intent();
-//                intent.setClass(DemoActivity.this, CameraActivity.class);
-//                startActivityForResult(intent, 1);
+                //建议每次调用时，对路径进行重新赋值,避免和相册选图的路径引用同一个String对象时，加载上一次的图片
+                // String filePaht = "mnt/sdcard/temp.jpg";
+//                CameraCropHelper.openCameraCrop(DemoActivity.this,filePath);
                 break;
         }
     }
