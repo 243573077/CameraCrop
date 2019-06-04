@@ -41,7 +41,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private String filePath;
     private Bitmap mCropBitmap;
-    private String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+//    private String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+// Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -304,9 +305,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         if (cropThread != null) {
             cropThread.interrupt();
         }
+        super.onDestroy();
     }
 }
