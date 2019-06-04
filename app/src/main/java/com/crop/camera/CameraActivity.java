@@ -237,7 +237,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         }
         //保存裁剪后的区域
         if (mCropBitmap != null) {
-            filePath = "temp.jpg";
+            filePath = "mnt/sdcard/temp.jpg";
             boolean success = ImageUtils.save(mCropBitmap, filePath, Bitmap.CompressFormat.JPEG, true);
 
 //            Log.i(tag, "image file  rotation --" + GalleryUtil.getBitmapRotate(filePath));
