@@ -19,7 +19,6 @@ import android.widget.TextView;
 
 import com.crop.camera.camera.CameraPreview;
 import com.crop.camera.utils.CameraUtils;
-import com.crop.camera.utils.GalleryUtil;
 import com.crop.camera.utils.ImageUtils;
 import com.crop.camera.utils.ScreenUtils;
 
@@ -46,7 +45,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         initView();
         initListener();
         initData();
-            /*增加0.5秒过渡界面，解决个别手机首次申请权限导致预览界面启动慢的问题*/
+        /*增加0.5秒过渡界面，解决个别手机首次申请权限导致预览界面启动慢的问题*/
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -178,8 +177,8 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         Log.i(tag, "need bitmap  bitmapNeedW: " + bitmapNeedW + " ,bitmapNeedH: " + bitmapNeedH);
         Log.i(tag, "preview bitmap  left,top:0, 0,width ,height : " + bitmapNeedW + " , " + bitmapNeedH);
         Log.i(tag, "-------------------------------------------------------------------------------------");
-        //裁剪出与预览view 等比例的图片
-        Bitmap preBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmapNeedW, bitmapNeedH);
+        //按中心点裁剪出与预览view 等比例的图片
+        Bitmap preBitmap = Bitmap.createBitmap(bitmap, (bitmapW - bitmapNeedW) / 2, (bitmapH - bitmapNeedH) / 2, bitmapNeedW, bitmapNeedH);
 
 
         // 3 计算取景框/证件框在整个视图(包括了状态栏)中的绝对坐标
@@ -195,11 +194,14 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         Log.i(tag, "crop onScreen top  :" + cropTop + ",  bottom : " + cropBottom + ",height --" + mIvScanRect.getHeight());
 
 
-        // 4 将取景框坐标换算成在整个屏幕或者视图中的比例
-        float percentLeftCrop = cropLeft / screenNeedW;
-        float percentTopCrop = cropTop / screenNeedH;
-        float percentRightCrop = cropRight / screenNeedW;
-        float percentBottomCrop = cropBottom / screenNeedH;
+        // 4 将取景框坐标换算成在整个屏幕中的比例
+        int screenW, screenH;
+        screenW = ScreenUtils.getScreenWidth(this);
+        screenH = ScreenUtils.getScreenHeight(this);
+        float percentLeftCrop = cropLeft / screenW;
+        float percentTopCrop = cropTop / screenH;
+        float percentRightCrop = cropRight / screenW;
+        float percentBottomCrop = cropBottom / screenH;
         Log.i(tag, " percent left: " + percentLeftCrop + " ,right: " + percentRightCrop);
         Log.i(tag, " percent top: " + percentTopCrop + "  ,bottom: " + percentBottomCrop);
 
@@ -209,7 +211,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         //计算状态栏高度对预览view的比例
         float statusBarPercent;
         //优化状态栏对预览view的影响
-        float screenScale = ScreenUtils.getScreenWidth(this) * 1f / ScreenUtils.getScreenHeight(this);
+        float screenScale = screenW * 1f / screenH;
         float bitmapScale = bitmapW * 1f / bitmapH;
         boolean sameScale = screenScale == bitmapScale; //相机预览尺寸是否支持屏幕尺寸
         if (!sameScale) {
@@ -217,18 +219,17 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             statusBarPercent = location[1] * 1f / screenNeedH;  // 预览view的顶点即为状态栏高度
         } else {
             // 相机尺寸支持屏幕尺寸的预览界面
-            statusBarPercent = location[1] * 1f / ScreenUtils.getScreenHeight(this);
+            statusBarPercent = location[1] * 1f / screenH;
         }
         Log.i(tag, "statusBarPercent : " + statusBarPercent);
 
         // 5 去除状态栏影响，裁剪出取景框对应比例的图片
-        // 屏幕比预览view多一个状态栏高度，为保证屏幕中预览效果和位图(按预览view相同宽高比处理)效果一致，以中心点为准，屏幕应该往上移动二分之一的状态栏高度
-        //宽度也应该居中处理
-        mCropBitmap = Bitmap.createBitmap(preBitmap, (int) (percentLeftCrop * bitmapNeedW) + (bitmapW - bitmapNeedW) / 2,
-                (int) ((percentTopCrop - statusBarPercent / 2) * bitmapNeedH), (int) ((percentRightCrop - percentLeftCrop) * bitmapNeedW),
+        // 屏幕比预览view多一个状态栏高度，为保证屏幕中预览效果和位图(按预览view相同宽高比处理)效果一致，屏幕应该往上移动状态栏高度
+        mCropBitmap = Bitmap.createBitmap(preBitmap, (int) (percentLeftCrop * bitmapNeedW),
+                (int) ((percentTopCrop - statusBarPercent) * bitmapNeedH), (int) ((percentRightCrop - percentLeftCrop) * bitmapNeedW),
                 (int) ((percentBottomCrop - percentTopCrop) * bitmapNeedH));
         Log.i(tag, " crop bitmap,no status bar left ,top :   " + (int) (percentLeftCrop * bitmapNeedW) + " ,"
-                + (int) ((percentTopCrop - statusBarPercent / 2) * bitmapNeedH));
+                + (int) ((percentTopCrop - statusBarPercent) * bitmapNeedH));
 
 
         if (!preBitmap.isRecycled()) {
